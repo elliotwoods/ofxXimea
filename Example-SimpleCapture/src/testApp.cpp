@@ -34,7 +34,6 @@ void testApp::draw(){
 
 //--------------------------------------------------------------
 void testApp::keyPressed(int key){
-	camera->everyframe = ! camera->everyframe;
 }
 
 //--------------------------------------------------------------
