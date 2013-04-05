@@ -4,7 +4,7 @@
 void testApp::setup(){
     
     //let's instanstiate a test capture device
-    camera = new ofxMachineVision::VideoGrabberDevice();
+    camera = new ofxXimea::Device();
     
     //open a connection to the device
     camera->open();

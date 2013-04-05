@@ -7,14 +7,128 @@
 
 #include "ofxXimea.h"
 
+#define LOG_ERROR ofLogError("ofxMachineVision::" + string(__func__))
+#define CHECK_FAIL(operation, result, return_instance) if (result != XI_OK) { LOG_ERROR << "Error during " << operation << " (" << result << ")"; return return_instance; }
+
 namespace ofxXimea {
-    //-------
-    Specification Device::customOpen(int deviceID) {
+    
+    //---------
+    ofxMachineVision::Device::Specification Device::customOpen(int deviceID) {
         XI_RETURN status = XI_OK;
         
-        status = X
+        status = xiOpenDevice(deviceID, &handle);
+        CHECK_FAIL("open device", status, Specification());
+        
+        int sensorWidth, sensorHeight;
+        
+        status = xiGetParamInt(handle, XI_PRM_WIDTH, &sensorWidth);
+        CHECK_FAIL("get sensor width", status, Specification());
+        
+        status = xiGetParamInt(handle, XI_PRM_HEIGHT, &sensorHeight);
+        CHECK_FAIL("get sensor width", status, Specification());
+        
+        char deviceName[100];
+        status = xiGetParamString(handle, XI_PRM_DEVICE_NAME, deviceName, 100);
+        CHECK_FAIL("get device name", status, Specification());
+        
+        specification.addFeature(ofxMachineVision::Device::Feature_FreeRun);
+        specification.addFeature(ofxMachineVision::Device::Feature_OneShot);
+        specification.addFeature(ofxMachineVision::Device::Feature_PixelClock);
+        specification.addFeature(ofxMachineVision::Device::Feature_Triggering);
+        specification.addFeature(ofxMachineVision::Device::Feature_Binning);
+        specification.addFeature(ofxMachineVision::Device::Feature_Gain);
+        specification.addFeature(ofxMachineVision::Device::Feature_Exposure);
+        
+        specification.addTriggerMode(ofxMachineVision::Device::Trigger_Device);
+        specification.addTriggerMode(ofxMachineVision::Device::Trigger_GPIO1);
+        specification.addTriggerMode(ofxMachineVision::Device::Trigger_Software);
+        
+        specification.addTriggerSignalType(ofxMachineVision::Device::TriggerSignal_Default);
+        specification.addTriggerSignalType(ofxMachineVision::Device::TriggerSignal_RisingEdge);
+        specification.addTriggerSignalType(ofxMachineVision::Device::TriggerSignal_FallingEdge);
+        
+        ofxMachineVision::Device::Specification specification(sensorWidth, sensorHeight, "Ximea", string(deviceName));
+        
+        return specification;
     }
+    
+    //----------
+    void Device::customClose() {
+        xiCloseDevice(handle);
+    }
+    
+    //----------
+    bool Device::customStart(const TriggerMode & triggerMode, const TriggerSignalType & triggerSignalType) {
+        XI_RETURN status = XI_OK;
+        
+        if (!setTriggerMode(triggerMode, triggerSignalType)) {
+            LOG_ERROR << "Failed to start acquisition with desired trigger mode";
+            return false;
+        }
+        
+        status = xiStartAcquisition(handle);
+        CHECK_FAIL("start acquisition", status, false);
+        
+        return true;
+    }
+    
+    //----------
+    void Device::customStop() {
+        XI_RETURN status = xiStopAcquisition(handle);
+        CHECK_FAIL("stop acquisition", status, );
+    }
+
+    //----------
+    bool Device::customPollFrame() {
+        XI_RETURN status = xiGetImage(handle, 5000, &image);
+        CHECK_FAIL("get image from camera", status, false);
+        return true;
+    }
+    
+    //----------
+    bool Device::setTriggerMode(const ofxMachineVision::Device::TriggerMode & triggerMode, const ofxMachineVision::Device::TriggerSignalType & triggerSignalType) {
+        XI_RETURN status = XI_OK;
+        switch (triggerMode) {
+            case ofxMachineVision::Device::Trigger_Device:
+                break;
+            case ofxMachineVision::Device::Trigger_GPIO1:
+                switch (triggerSignalType) {
+                    case ofxMachineVision::Device::TriggerSignal_RisingEdge:
+                        status = xiSetParamInt(handle, XI_PRM_TRG_SOURCE, XI_TRG_EDGE_RISING);
+                        CHECK_FAIL("Set trigger to GPIO input rising edge", status, false);
+                        break;
+                    case ofxMachineVision::Device::TriggerSignal_FallingEdge:
+                        status = xiSetParamInt(handle, XI_PRM_TRG_SOURCE, XI_TRG_EDGE_FALLING);
+                        CHECK_FAIL("Set trigger to GPIO input falling edge", status, false);
+                        break;
+                    default:
+                        break;
+                }
+                break;
+            case ofxMachineVision::Device::Trigger_Software:
+                status = xiSetParamInt(handle, XI_PRM_TRG_SOURCE, XI_TRG_SOFTWARE);;
+                CHECK_FAIL("Set trigger to software", status, false);
+                break;
+            default:
+                break;
+        }
+        return true;
+    }
+    
+    
 }
+/*
+ // structure containing information about trigger functionality
+ typedef enum
+ {
+ XI_TRG_OFF                   =0, // Camera works in free run mode.
+ XI_TRG_EDGE_RISING           =1, // External trigger (rising edge).
+ XI_TRG_EDGE_FALLING          =2, // External trigger (falling edge).
+ XI_TRG_SOFTWARE              =3, // Software(manual) trigger.
+ XI_TRG_OUT                   =4, // Camera works in free run mode. Outputs sync sugnals.
+ 
+ 
+#define HandleResult(res,place) if (res!=XI_OK) {printf("Error after %s (%d)",place,res);goto finish;}
 
 int notmain(int argc, _TCHAR* argv[])
 {
@@ -73,3 +187,4 @@ finish:
 	return 0;
 }
 
+*/

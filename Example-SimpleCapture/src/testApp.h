@@ -2,6 +2,7 @@
 
 #include "ofMain.h"
 #include "ofxMachineVision.h"
+#include "ofxXimea.h"
 
 class testApp : public ofBaseApp{
 
