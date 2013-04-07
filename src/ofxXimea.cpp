@@ -7,6 +7,9 @@
 
 #include "ofxXimea.h"
 
+#ifndef __func__
+#define __func__ __FUNCTION__
+#endif
 #define LOG_ERROR ofLogError("ofxMachineVision::" + string(__func__))
 #define CHECK_FAIL(operation, result, return_instance) if (result != XI_OK) { LOG_ERROR << "Error during " << operation << " (" << result << ")"; return return_instance; }
 
@@ -20,7 +23,7 @@ namespace ofxXimea {
         CHECK_FAIL("open device", status, Specification());
         
         int sensorWidth, sensorHeight;
-        
+		
         status = xiGetParamInt(handle, XI_PRM_WIDTH, &sensorWidth);
         CHECK_FAIL("get sensor width", status, Specification());
         
@@ -31,6 +34,8 @@ namespace ofxXimea {
         status = xiGetParamString(handle, XI_PRM_DEVICE_NAME, deviceName, 100);
         CHECK_FAIL("get device name", status, Specification());
         
+        ofxMachineVision::Device::Specification specification(sensorWidth, sensorHeight, "Ximea", string(deviceName));
+
         specification.addFeature(ofxMachineVision::Device::Feature_FreeRun);
         specification.addFeature(ofxMachineVision::Device::Feature_OneShot);
         specification.addFeature(ofxMachineVision::Device::Feature_PixelClock);
@@ -47,9 +52,7 @@ namespace ofxXimea {
         specification.addTriggerSignalType(ofxMachineVision::Device::TriggerSignal_RisingEdge);
         specification.addTriggerSignalType(ofxMachineVision::Device::TriggerSignal_FallingEdge);
         
-        ofxMachineVision::Device::Specification specification(sensorWidth, sensorHeight, "Ximea", string(deviceName));
-        
-        return specification;
+		return specification;
     }
     
     //----------
@@ -68,7 +71,10 @@ namespace ofxXimea {
         
         status = xiStartAcquisition(handle);
         CHECK_FAIL("start acquisition", status, false);
-        
+
+		status = xiSetParamInt(handle, XI_PRM_EXPOSURE, 10000);
+        CHECK_FAIL("set default exposure", status, false);
+
         return true;
     }
     
@@ -82,6 +88,9 @@ namespace ofxXimea {
     bool Device::customPollFrame() {
         XI_RETURN status = xiGetImage(handle, 5000, &image);
         CHECK_FAIL("get image from camera", status, false);
+		
+		this->getPixelsRef().setFromExternalPixels((unsigned char *) image.bp, image.width, image.height, 1);
+
         return true;
     }
     

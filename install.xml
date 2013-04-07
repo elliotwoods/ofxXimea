@@ -1,0 +1,31 @@
+<install>
+	<name>ofxXimea</name>
+	<version>0.01</version>
+	<author>Elliot Woods</author>
+	<url>http://github.com/elliotwoods/ofxXimea</url>
+	<requires></requires>
+	
+	<add>
+		
+		<!-- 	=====================================================================	-->
+		<!--	========================== add per project using this addon =========	-->
+		<!-- 	=====================================================================	-->
+
+		<src>
+			<folder name="addons/ofxGraycode/src">
+				<file>../../../addons/ofxXimea/src/ofxXimea.h</file>
+				<file>../../../addons/ofxXimea/src/ofxXimea.cpp</file>
+			</folder>
+		</src>
+
+		<include>
+			<path>../../../addons/ofxXimea/src</path>
+			<path>../../../addons/ofxXimea/libs/ximea/src</path>
+		</include>
+
+		<link>
+		</link>
+	
+	</add>
+	
+</install>

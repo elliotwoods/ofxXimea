@@ -8,8 +8,8 @@
 #pragma once
 #include "ofxMachineVision.h"
 
-#include "xiApi.h"
-#include "xiExt.h"
+#include "m3api/xiApi.h"
+#include "m3api/xiExt.h"
 
 namespace ofxXimea {
     class Device : public ofxMachineVision::Device {
