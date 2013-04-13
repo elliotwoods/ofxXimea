@@ -1,0 +1,2 @@
+ofxXimea
+ofxMachineVision

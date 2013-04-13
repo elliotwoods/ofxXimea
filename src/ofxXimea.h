@@ -15,7 +15,7 @@ namespace ofxXimea {
     class Device : public ofxMachineVision::Device {
     public:
     public:
-        Device() : ofxMachineVision::Device(ofxMachineVision::Device::FreeRunMode_NeedsThread) { }
+        Device() : ofxMachineVision::Device(ofxMachineVision::Device::FreeRunMode_Blocking) { }
     protected:
         ofxMachineVision::Device::Specification customOpen(int deviceID);
         void customClose();
