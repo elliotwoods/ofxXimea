@@ -12,20 +12,25 @@
 #include "m3api/xiExt.h"
 
 namespace ofxXimea {
-    class Device : public ofxMachineVision::Device {
+	class Device : public ofxMachineVision::Device::Blocking {
     public:
-    public:
-        Device() : ofxMachineVision::Device(ofxMachineVision::Device::FreeRunMode_Blocking) { }
-    protected:
-        ofxMachineVision::Device::Specification customOpen(int deviceID);
-        void customClose();
-        bool customStart(const TriggerMode &, const TriggerSignalType &);
-        void customStop();
-        bool customPollFrame();
-        
-        bool setTriggerMode(const TriggerMode &, const TriggerSignalType &);
+		ofxMachineVision::Specification open(int deviceID = 0);
+		void close();
+		bool startCapture();
+		void stopCapture();
+
+		void setBinning(int binningX = 1, int binningY = 1);
+		void setROI(const ofRectangle &);
+		void setTriggerMode(const ofxMachineVision::TriggerMode &, const ofxMachineVision::TriggerSignalType &);
+		
+		void getFrame(ofxMachineVision::Frame &);
         
         HANDLE handle;
         XI_IMG image;
     };
+
+	class SimpleGrabber : public ofxMachineVision::Grabber::Simple {
+	public:
+		SimpleGrabber() : ofxMachineVision::Grabber::Simple(new Device) { }
+	};
 }

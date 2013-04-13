@@ -100,22 +100,20 @@
     <PostBuildEvent />
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\ofxMachineVision\src\ofxMachineVision\Device.cpp" />
-    <ClCompile Include="..\..\ofxMachineVision\src\ofxMachineVision\VideoGrabberDevice.cpp" />
     <ClCompile Include="..\src\ofxXimea.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\testApp.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\ofxMachineVision\src\ofxMachineVision.h" />
-    <ClInclude Include="..\..\ofxMachineVision\src\ofxMachineVision\Device.h" />
-    <ClInclude Include="..\..\ofxMachineVision\src\ofxMachineVision\VideoGrabberDevice.h" />
     <ClInclude Include="..\src\ofxXimea.h" />
     <ClInclude Include="src\testApp.h" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\libs\openFrameworksCompiled\project\vs\openframeworksLib.vcxproj">
       <Project>{5837595d-aca9-485c-8e76-729040ce4b0b}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\ofxMachineVision\ofxMachineVisionLib\ofxMachineVisionLib.vcxproj">
+      <Project>{cd4455e0-0454-4c3c-bb42-9d15d16a34dd}</Project>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

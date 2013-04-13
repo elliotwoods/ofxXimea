@@ -4,23 +4,22 @@
 void testApp::setup(){
     
     //let's instanstiate a test capture device
-    camera = new ofxXimea::Device();
-    
+
     //open a connection to the device
-    camera->open();
+    camera.open();
     
     //start the camera capturing using default trigger
-    camera->startFreeRunCapture();
+	camera.startCapture();
     
     //print device information
-    cout << camera->getSpecification().toString();
+    cout << camera.getSpecification().toString();
 }
 
 //--------------------------------------------------------------
 void testApp::update(){
     
     //update the texture in the Device class
-    camera->update();
+    camera.update();
     
 }
 
@@ -28,8 +27,7 @@ void testApp::update(){
 void testApp::draw(){
     
     //draw the texture in the Device class
-    camera->draw(0, 0);
-    
+    camera.draw(0, 0);
 }
 
 //--------------------------------------------------------------
