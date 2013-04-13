@@ -3,11 +3,11 @@
 //--------------------------------------------------------------
 void testApp::setup(){
     
-    //let's instanstiate a test capture device
+	ofSetVerticalSync(true);
 
     //open a connection to the device
     camera.open();
-    
+
     //start the camera capturing using default trigger
 	camera.startCapture();
     

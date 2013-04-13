@@ -145,7 +145,15 @@ namespace ofxXimea {
         XI_RETURN status = xiGetImage(handle, 5000, &image);
         CHECK_FAIL("get image from camera", status, );
 		
-		//frame.setFrom( (unsigned char *) image.bp);
+		ofPixels & pixels(frame.getPixelsRef());
+
+		if (image.height != pixels.getHeight() || image.width != pixels.getWidth()) {
+			pixels.allocate(image.width, image.height, OF_PIXELS_MONO);
+		}
+
+		pixels.setFromPixels( (unsigned char * ) image.bp, image.width, image.height, 1);
+		frame.setTimestamp(image.tsUSec);
+		frame.setFrameIndex(image.nframe);
 	}
 }
 /*
