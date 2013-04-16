@@ -5,12 +5,19 @@
   <PropertyGroup />
   <ItemDefinitionGroup>
     <ClCompile>
-      <AdditionalIncludeDirectories>..\..\..\addons\ofxXimea\src;..\..\..\addons\ofxXimea\libs\ximea\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\addons\ofxXimea\src;..\..\..\addons\ofxXimea\libs\ximea\include;..\..\..\addons\ofxMachineVision\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
-      <AdditionalLibraryDirectories>..\..\..\addons\ofxXimea\libs\ximea\lib\vs_x86</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>..\..\..\addons\ofxXimea\libs\ximea\lib\vs_x86;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>m3api.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <PerUserRedirection>true</PerUserRedirection>
     </Link>
+    <PreBuildEvent>
+      <Command>xcopy /e /i /y "$(ProjectDir)..\..\..\addons\ofxXimea\libs\ximea\lib\vs_x86\*.dll" "$(TargetDir)"</Command>
+    </PreBuildEvent>
+    <PreBuildEvent>
+      <Message>Copy m3api dll</Message>
+    </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup />
 </Project>

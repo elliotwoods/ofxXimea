@@ -31,6 +31,6 @@ namespace ofxXimea {
 
 	class SimpleGrabber : public ofxMachineVision::Grabber::Simple {
 	public:
-		SimpleGrabber() : ofxMachineVision::Grabber::Simple(new Device) { }
+		SimpleGrabber() : ofxMachineVision::Grabber::Simple(ofxMachineVision::DevicePtr(new Device())) { }
 	};
 }
