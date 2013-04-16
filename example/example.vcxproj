@@ -82,7 +82,7 @@
       <PrecompiledHeader />
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat />
-      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\addons\ofxMachineVision\src;..\..\..\addons\ofxXimea\libs\ximea\src;..\..\..\addons\ofxXimea\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
@@ -94,8 +94,8 @@
       <DataExecutionPrevention />
       <TargetMachine>MachineX86</TargetMachine>
       <LinkTimeCodeGeneration>Default</LinkTimeCodeGeneration>
-      <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>m3api.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\..\..\addons\ofxXimea\libs\ximea\lib\vs_x86;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent />
   </ItemDefinitionGroup>

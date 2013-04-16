@@ -11,16 +11,15 @@ void testApp::setup(){
     //start the camera capturing using default trigger
 	camera.startCapture();
     
-    //print device information
-    cout << camera.getSpecification().toString();
+    //get device information
+	this->specification = camera.getSpecification().toString();
+	cout << this->specification;
 }
 
 //--------------------------------------------------------------
 void testApp::update(){
-    
     //update the texture in the Device class
     camera.update();
-    
 }
 
 //--------------------------------------------------------------
@@ -28,6 +27,9 @@ void testApp::draw(){
     
     //draw the texture in the Device class
     camera.draw(0, 0);
+
+	ofDrawBitmapStringHighlight(ofToString(camera.getFps()) + "fps", 20, 30);
+	ofDrawBitmapStringHighlight(this->specification, 20, 60);
 }
 
 //--------------------------------------------------------------

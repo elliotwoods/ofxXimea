@@ -12,7 +12,6 @@
 using namespace ofxMachineVision;
 
 namespace ofxXimea {
-    
     //---------
     Specification Device::open(int deviceID) {
         XI_RETURN status = XI_OK;
@@ -31,16 +30,18 @@ namespace ofxXimea {
         char deviceName[100];
         status = xiGetParamString(handle, XI_PRM_DEVICE_NAME, deviceName, 100);
         CHECK_FAIL("get device name", status, Specification());
-        
+
         Specification specification(sensorWidth, sensorHeight, "Ximea", string(deviceName));
 
         specification.addFeature(Feature_FreeRun);
         specification.addFeature(Feature_OneShot);
         specification.addFeature(Feature_PixelClock);
         specification.addFeature(Feature_Triggering);
-        specification.addFeature(Feature_Binning);
+		specification.addFeature(Feature_ROI);
         specification.addFeature(Feature_Gain);
         specification.addFeature(Feature_Exposure);
+
+		specification.addPixelMode(Pixel_L8);
         
         specification.addTriggerMode(Trigger_Device);
         specification.addTriggerMode(Trigger_GPIO1);
@@ -65,8 +66,11 @@ namespace ofxXimea {
         status = xiStartAcquisition(handle);
         CHECK_FAIL("start acquisition", status, false);
 
-		status = xiSetParamInt(handle, XI_PRM_EXPOSURE, 10000);
-        CHECK_FAIL("set default exposure", status, false);
+		status = xiSetParamFloat(handle, XI_PRM_AEAG, 0);
+		CHECK_FAIL("turn off auto exposure", status, false);
+
+		status = xiSetParamInt(handle, XI_PRM_EXPOSURE, 1000);
+		CHECK_FAIL("set exposure", status, false);
 
         return true;
     }
@@ -90,25 +94,32 @@ namespace ofxXimea {
 			return;
 		}
 
-		XI_RETURN status = xiSetParamInt(handle, XI_PRM_DOWNSAMPLING, binningX);
-		CHECK_FAIL("set binning", status, );
+		XI_RETURN status;
+
+		//we hard set to skipping here, as we presume you can do interpolation in your own code
+		//and only skipping improves frame rate.
+		status = xiSetParamInt(handle, XI_PRM_DOWNSAMPLING_TYPE, XI_SKIPPING);
+		CHECK_FAIL("set binning type", status, );
+
+		status = xiSetParamInt(handle, XI_PRM_DOWNSAMPLING, binningX);
+		CHECK_FAIL("set binning resolution", status, );
 	}
 
     //----------
 	void Device::setROI(const ofRectangle & roi) {
 		XI_RETURN status;
 
-		status = xiSetParamInt(handle, XI_PRM_OFFSET_X, (int) roi.x);
-		CHECK_FAIL("set ROI x", status, );
-
-		status = xiSetParamInt(handle, XI_PRM_OFFSET_Y, (int) roi.y);
-		CHECK_FAIL("set ROI y", status, );
-
 		status = xiSetParamInt(handle, XI_PRM_WIDTH, (int) roi.width);
 		CHECK_FAIL("set ROI width", status, );
 
 		status = xiSetParamInt(handle, XI_PRM_HEIGHT, (int) roi.height);
 		CHECK_FAIL("set ROI height", status, );
+
+		status = xiSetParamInt(handle, XI_PRM_OFFSET_X, (int) roi.x);
+		CHECK_FAIL("set ROI x", status, );
+
+		status = xiSetParamInt(handle, XI_PRM_OFFSET_Y, (int) roi.y);
+		CHECK_FAIL("set ROI y", status, );
 	}
     
     //----------
@@ -144,7 +155,7 @@ namespace ofxXimea {
 	void Device::getFrame(Frame & frame) {
         XI_RETURN status = xiGetImage(handle, 5000, &image);
         CHECK_FAIL("get image from camera", status, );
-		
+
 		ofPixels & pixels(frame.getPixelsRef());
 
 		if (image.height != pixels.getHeight() || image.width != pixels.getWidth()) {
@@ -156,74 +167,3 @@ namespace ofxXimea {
 		frame.setFrameIndex(image.nframe);
 	}
 }
-/*
- // structure containing information about trigger functionality
- typedef enum
- {
- XI_TRG_OFF                   =0, // Camera works in free run mode.
- XI_TRG_EDGE_RISING           =1, // External trigger (rising edge).
- XI_TRG_EDGE_FALLING          =2, // External trigger (falling edge).
- XI_TRG_SOFTWARE              =3, // Software(manual) trigger.
- XI_TRG_OUT                   =4, // Camera works in free run mode. Outputs sync sugnals.
- 
- 
-#define HandleResult(res,place) if (res!=XI_OK) {printf("Error after %s (%d)",place,res);goto finish;}
-
-int notmain(int argc, _TCHAR* argv[])
-{
-	// image buffer
-	XI_IMG image;
-	image.size = sizeof(XI_IMG);
-	image.bp = NULL;
-	image.bp_size = 0;
-    
-	// Sample for XIMEA API V2.10
-	HANDLE xiH = NULL;
-	XI_RETURN stat = XI_OK;
-    
-	// Get number of camera devices
-	DWORD dwNumberOfDevices = 0;
-	stat = xiGetNumberDevices(&dwNumberOfDevices);
-	HandleResult(stat,"xiGetNumberDevices (no camera found)");
-	
-	if (!dwNumberOfDevices)
-	{
-		printf("No camera found\n");
-		goto finish;
-	}
-	
-	// Retrieving a handle to the camera device
-	stat = xiOpenDevice(0, &xiH);
-	HandleResult(stat,"xiOpenDevice");
-	
-	// Setting "exposure" parameter (10ms=10000us)
-	stat = xiSetParamInt(xiH, XI_PRM_EXPOSURE, 10000);
-	HandleResult(stat,"xiSetParam (exposure set)");
-	
-	xiStartAcquisition(xiH);
-	HandleResult(stat,"xiStartAcquisition");
-	
-#define EXPECTED_IMAGES 100
-	for (int images=0;images < EXPECTED_IMAGES;images++)
-	{
-        clock_t start = clock();
-		// getting image from camera
-		stat = xiGetImage(xiH, 5000, &image);
-		HandleResult(stat,"xiGetImage");
-		printf("Image %d (%dx%d) received from camera\n", images, (int)image.width, (int)image.height);
-        float fps = 1.0f / (float(clock() - start) / float(CLOCKS_PER_SEC));
-        printf("fps = %.2f\n", fps);
-	}
-    
-finish:
-	// Close device
-	if (xiH)
-		xiCloseDevice(xiH);
-	printf("Done\n");
-#ifdef WIN32
-	Sleep(2000);
-#endif
-	return 0;
-}
-
-*/

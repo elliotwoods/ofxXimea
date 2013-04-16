@@ -25,4 +25,5 @@ public:
 	void gotMessage(ofMessage msg);
     
 	ofxXimea::SimpleGrabber camera;
+	string specification;
 };
