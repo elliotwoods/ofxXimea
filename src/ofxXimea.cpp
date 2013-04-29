@@ -154,16 +154,20 @@ namespace ofxXimea {
 	//----------
 	void Device::getFrame(Frame & frame) {
         XI_RETURN status = xiGetImage(handle, 5, &image);
-        CHECK_FAIL("get image from camera", status, Frame());
+		if (status != XI_OK) {
+			OFXMV_ERROR << "xiGetImage failed";
+			frame.setEmpty(true);
+		} else {
+			ofPixels & pixels(frame.getPixelsRef());
 
-		ofPixels & pixels(frame.getPixelsRef());
+			if (image.height != pixels.getHeight() || image.width != pixels.getWidth()) {
+				pixels.allocate(image.width, image.height, OF_PIXELS_MONO);
+			}
 
-		if (image.height != pixels.getHeight() || image.width != pixels.getWidth()) {
-			pixels.allocate(image.width, image.height, OF_PIXELS_MONO);
+			pixels.setFromPixels( (unsigned char * ) image.bp, image.width, image.height, 1);
+			frame.setTimestamp(image.tsUSec);
+			frame.setFrameIndex(image.nframe);
+			frame.setEmpty(false);
 		}
-
-		pixels.setFromPixels( (unsigned char * ) image.bp, image.width, image.height, 1);
-		frame.setTimestamp(image.tsUSec);
-		frame.setFrameIndex(image.nframe);
 	}
 }
