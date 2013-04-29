@@ -28,9 +28,4 @@ namespace ofxXimea {
         HANDLE handle;
         XI_IMG image;
     };
-
-	class SimpleGrabber : public ofxMachineVision::Grabber::Simple {
-	public:
-		SimpleGrabber() : ofxMachineVision::Grabber::Simple(ofxMachineVision::DevicePtr(new Device())) { }
-	};
 }

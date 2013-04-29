@@ -7,7 +7,7 @@
 
 #include "ofxXimea.h"
 
-#define CHECK_FAIL(operation, result, return_instance) if (result != XI_OK) { OFXMV_ERROR << "Error during " << operation << " (" << result << ")"; return return_instance; }
+#define CHECK_FAIL(operation, result, return_instance) if (result != XI_OK) { OFXMV_ERROR << "Error [" << result << "] during " << operation << " (" << result << ")"; return return_instance; }
 
 using namespace ofxMachineVision;
 
@@ -153,8 +153,8 @@ namespace ofxXimea {
     
 	//----------
 	void Device::getFrame(Frame & frame) {
-        XI_RETURN status = xiGetImage(handle, 5000, &image);
-        CHECK_FAIL("get image from camera", status, );
+        XI_RETURN status = xiGetImage(handle, 5, &image);
+        CHECK_FAIL("get image from camera", status, Frame());
 
 		ofPixels & pixels(frame.getPixelsRef());
 
