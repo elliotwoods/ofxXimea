@@ -14,6 +14,7 @@
 namespace ofxXimea {
 	class Device : public ofxMachineVision::Device::Blocking {
     public:
+		Device();
 		ofxMachineVision::Specification open(int deviceID = 0);
 		void close();
 		bool startCapture();
@@ -27,5 +28,8 @@ namespace ofxXimea {
         
         HANDLE handle;
         XI_IMG image;
+
+		ofxMachineVision::Frame::Timestamp lastTimestamp;
+		ofxMachineVision::Frame::Timestamp timestampOffset;
     };
 }

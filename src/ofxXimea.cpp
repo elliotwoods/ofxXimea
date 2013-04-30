@@ -13,6 +13,11 @@ using namespace ofxMachineVision;
 
 namespace ofxXimea {
     //---------
+	Device::Device() {
+		
+	}
+
+    //---------
     Specification Device::open(int deviceID) {
         XI_RETURN status = XI_OK;
         
@@ -51,6 +56,13 @@ namespace ofxXimea {
         specification.addTriggerSignalType(TriggerSignal_RisingEdge);
         specification.addTriggerSignalType(TriggerSignal_FallingEdge);
         
+		image.size = sizeof(XI_IMG);
+		image.bp = NULL;
+		image.bp_size = 0;
+
+		this->lastTimestamp = 0;
+		this->timestampOffset = 0;
+
 		return specification;
     }
     
@@ -165,9 +177,19 @@ namespace ofxXimea {
 			}
 
 			pixels.setFromPixels( (unsigned char * ) image.bp, image.width, image.height, 1);
-			frame.setTimestamp(image.tsUSec);
+
+			// a pretty hacky way to unwravel looping timestamps into sequential timestamps
+			Frame::Timestamp timestamp = image.tsUSec + timestampOffset;
+			if (timestamp < lastTimestamp) {
+				timestampOffset += 1e6;
+				timestamp += 1e6;
+			}
+
+			frame.setTimestamp(timestamp);
 			frame.setFrameIndex(image.nframe);
 			frame.setEmpty(false);
+
+			lastTimestamp = timestamp;
 		}
 	}
 }
