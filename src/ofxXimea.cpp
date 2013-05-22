@@ -42,27 +42,35 @@ namespace ofxXimea {
         specification.addFeature(Feature_OneShot);
         specification.addFeature(Feature_PixelClock);
         specification.addFeature(Feature_Triggering);
+		specification.addFeature(Feature_GPO);
 		specification.addFeature(Feature_ROI);
         specification.addFeature(Feature_Gain);
         specification.addFeature(Feature_Exposure);
-
+		
 		specification.addPixelMode(Pixel_L8);
         
         specification.addTriggerMode(Trigger_Device);
-        specification.addTriggerMode(Trigger_GPIO1);
+        specification.addTriggerMode(Trigger_GPIO0);
         specification.addTriggerMode(Trigger_Software);
         
         specification.addTriggerSignalType(TriggerSignal_Default);
         specification.addTriggerSignalType(TriggerSignal_RisingEdge);
         specification.addTriggerSignalType(TriggerSignal_FallingEdge);
         
+		specification.addGPOMode(GPOMode_On);
+		specification.addGPOMode(GPOMode_Off);
+		specification.addGPOMode(GPOMode_HighWhilstExposure);
+		specification.addGPOMode(GPOMode_HighWhilstFrameActive);
+		specification.addGPOMode(GPOMode_LowWhilstExposure);
+		specification.addGPOMode(GPOMode_LowWhilstFrameActive);
+
 		image.size = sizeof(XI_IMG);
 		image.bp = NULL;
 		image.bp_size = 0;
 
 		this->lastTimestamp = 0;
 		this->timestampOffset = 0;
-
+		
 		return specification;
     }
     
@@ -81,10 +89,7 @@ namespace ofxXimea {
 		status = xiSetParamFloat(handle, XI_PRM_AEAG, 0);
 		CHECK_FAIL("turn off auto exposure", status, false);
 
-		status = xiSetParamInt(handle, XI_PRM_EXPOSURE, 1000);
-		CHECK_FAIL("set exposure", status, false);
-
-        return true;
+		return true;
     }
     
     //----------
@@ -92,6 +97,11 @@ namespace ofxXimea {
         XI_RETURN status = xiStopAcquisition(handle);
         CHECK_FAIL("stop acquisition", status, );
     }
+
+    //----------
+	void Device::setExposure(Microseconds exposure) {
+		CHECK_FAIL("set exposure", xiSetParamInt(handle, XI_PRM_EXPOSURE, exposure), );
+	}
 
     //----------
 	void Device::setBinning(int binningX, int binningY) {
@@ -109,7 +119,7 @@ namespace ofxXimea {
 		XI_RETURN status;
 
 		//we hard set to skipping here, as we presume you can do interpolation in your own code
-		//and only skipping improves frame rate.
+		//and only skipping improves frame rate on ximea api.
 		status = xiSetParamInt(handle, XI_PRM_DOWNSAMPLING_TYPE, XI_SKIPPING);
 		CHECK_FAIL("set binning type", status, );
 
@@ -137,10 +147,15 @@ namespace ofxXimea {
     //----------
     void Device::setTriggerMode(const TriggerMode & triggerMode, const TriggerSignalType & triggerSignalType) {
         XI_RETURN status = XI_OK;
+
         switch (triggerMode) {
             case Trigger_Device:
                 break;
-            case Trigger_GPIO1:
+            case Trigger_GPIO0:
+
+				status = xiGetParamInt(handle, XI_PRM_GPI_SELECTOR, 0);
+				CHECK_FAIL("Set GPI port to 0", status, );
+
                 switch (triggerSignalType) {
                     case TriggerSignal_RisingEdge:
                         status = xiSetParamInt(handle, XI_PRM_TRG_SOURCE, XI_TRG_EDGE_RISING);
@@ -164,11 +179,53 @@ namespace ofxXimea {
     }
     
 	//----------
+	void Device::setGPOMode(const GPOMode & gpoMode) {
+        XI_RETURN status = XI_OK;
+
+		status = xiSetParamInt(handle, XI_PRM_GPO_SELECTOR, 1);
+		CHECK_FAIL("Turn GPO on for port 0", status, );
+		
+		int xiParam = -1;
+
+		switch(gpoMode) {
+		case GPOMode_On:
+			xiParam = XI_GPO_ON;
+			break;
+		case GPOMode_Off:
+			xiParam = XI_GPO_OFF;
+			break;
+		case GPOMode_HighWhilstExposure:
+			xiParam = XI_GPO_EXPOSURE_ACTIVE;
+			break;
+		case GPOMode_HighWhilstFrameActive:
+			xiParam = XI_GPO_FRAME_ACTIVE;
+			break;
+		case GPOMode_LowWhilstExposure:
+			xiParam = XI_GPO_EXPOSURE_ACTIVE_NEG;
+			break;
+		case GPOMode_LowWhilstFrameActive:
+			xiParam = XI_GPO_FRAME_ACTIVE_NEG;
+			break;
+		}
+
+		status = xiSetParamInt(handle, XI_PRM_GPO_MODE, xiParam);
+		CHECK_FAIL("Set GPO mode", status, );
+	}
+
+	//----------
 	void Device::getFrame(Frame & frame) {
         XI_RETURN status = xiGetImage(handle, 5, &image);
 		if (status != XI_OK) {
-			OFXMV_ERROR << "xiGetImage failed";
-			frame.setEmpty(true);
+			if (status == XI_TIMEOUT) {
+				//we might need a better mechanism for marking no returned frame
+				// as this state might be propagated down to places that we don't want
+				frame.setEmpty(true);
+				return;
+			} else {
+				OFXMV_ERROR << "xiGetImage failed" << status;
+				frame.setEmpty(true);
+				return;
+			}
 		} else {
 			ofPixels & pixels(frame.getPixelsRef());
 
@@ -179,7 +236,7 @@ namespace ofxXimea {
 			pixels.setFromPixels( (unsigned char * ) image.bp, image.width, image.height, 1);
 
 			// a pretty hacky way to unwravel looping timestamps into sequential timestamps
-			Frame::Timestamp timestamp = image.tsUSec + timestampOffset;
+			Microseconds timestamp = image.tsUSec + timestampOffset;
 			if (timestamp < lastTimestamp) {
 				timestampOffset += 1e6;
 				timestamp += 1e6;

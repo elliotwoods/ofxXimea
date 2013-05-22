@@ -20,16 +20,18 @@ namespace ofxXimea {
 		bool startCapture();
 		void stopCapture();
 
+		void setExposure(ofxMachineVision::Microseconds exposure);
 		void setBinning(int binningX = 1, int binningY = 1);
 		void setROI(const ofRectangle &);
 		void setTriggerMode(const ofxMachineVision::TriggerMode &, const ofxMachineVision::TriggerSignalType &);
-		
+		void setGPOMode(const ofxMachineVision::GPOMode &);
+
 		void getFrame(ofxMachineVision::Frame &);
         
         HANDLE handle;
         XI_IMG image;
 
-		ofxMachineVision::Frame::Timestamp lastTimestamp;
-		ofxMachineVision::Frame::Timestamp timestampOffset;
+		ofxMachineVision::Microseconds lastTimestamp;
+		ofxMachineVision::Microseconds timestampOffset;
     };
 }
