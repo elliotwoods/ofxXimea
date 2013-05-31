@@ -50,7 +50,7 @@ namespace ofxXimea {
 		specification.addPixelMode(Pixel_L8);
         
         specification.addTriggerMode(Trigger_Device);
-        specification.addTriggerMode(Trigger_GPIO0);
+        specification.addTriggerMode(Trigger_GPIO1);
         specification.addTriggerMode(Trigger_Software);
         
         specification.addTriggerSignalType(TriggerSignal_Default);
@@ -151,10 +151,13 @@ namespace ofxXimea {
         switch (triggerMode) {
             case Trigger_Device:
                 break;
-            case Trigger_GPIO0:
+            case Trigger_GPIO1:
 
-				status = xiGetParamInt(handle, XI_PRM_GPI_SELECTOR, 0);
-				CHECK_FAIL("Set GPI port to 0", status, );
+				status = xiSetParamInt(this->handle, XI_PRM_GPI_SELECTOR, 1);
+				CHECK_FAIL("Set GPI port to 1", status, );
+
+				status = xiSetParamInt(this->handle, XI_PRM_GPI_MODE, XI_GPI_TRIGGER);
+				CHECK_FAIL("Set GPI port as input trigger", status, );
 
                 switch (triggerSignalType) {
                     case TriggerSignal_RisingEdge:
